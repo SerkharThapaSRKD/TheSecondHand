@@ -23,6 +23,7 @@ type CartContextType = {
   updateQty: (productId: string, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
   fetchCart: () => Promise<void>;
+  isInCart: (productId: string) => boolean;
 };
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -105,6 +106,27 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         return;
     }
 
+    // Check if user is trying to buy their own item
+    if (product.seller._id === user?._id) {
+        toast({ 
+            title: "Cannot buy your own item", 
+            description: "You cannot add your own listed items to cart",
+            variant: "destructive"
+        });
+        return;
+    }
+
+    // Check if item already in cart (second-hand items are unique, only one per item)
+    const exists = cart.items.find((i) => i.product._id === product._id);
+    if (exists) {
+        toast({ 
+            title: "Already in cart", 
+            description: "This item is already in your cart",
+            variant: "default"
+        });
+        return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       if (token) {
@@ -114,7 +136,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ productId: product._id, quantity }),
+          body: JSON.stringify({ productId: product._id, quantity: 1 }), // Always 1 for second-hand unique items
         });
         if (res.ok) {
           const data = await res.json();
@@ -124,29 +146,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
             price: i.price,
           }));
           setCart(recalc(items));
-          toast({ title: "Added to cart" });
+          toast({ title: "Added to cart", description: product.name });
           return;
         }
       }
 
-      // fallback: store in local cart
-      const exists = cart.items.find((i) => i.product._id === product._id);
-      let nextItems = [] as CartItem[];
-      if (exists) {
-        nextItems = cart.items.map((i) =>
-          i.product._id === product._id
-            ? { ...i, quantity: i.quantity + quantity }
-            : i
-        );
-      } else {
-        nextItems = [
-          ...cart.items,
-          { product, quantity, price: product.price },
-        ];
-      }
+      // fallback: store in local cart (only 1 of each item since unique)
+      const nextItems = [
+        ...cart.items,
+        { product, quantity: 1, price: product.price },
+      ];
       setCart(recalc(nextItems));
+      toast({ title: "Added to cart", description: product.name });
     } catch (e) {
       console.error(e);
+      toast({ title: "Error", description: "Failed to add to cart", variant: "destructive" });
     }
   }
 
@@ -225,6 +239,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     setCart({ items: [], total: 0 });
   }
 
+  function isInCart(productId: string): boolean {
+    return cart.items.some((item) => item.product._id === productId);
+  }
+
   return (
     <CartContext.Provider
       value={{
@@ -234,6 +252,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         updateQty,
         clearCart,
         fetchCart,
+        isInCart,
       }}>
       {children}
     </CartContext.Provider>

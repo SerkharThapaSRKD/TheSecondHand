@@ -165,14 +165,46 @@ export default function About() {
               
               <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
                 <p>
-                  Founded in 2024, SecondHand-Store began with a simple idea: passing things on shouldn't be complicated. 
-                  What started as a small local exchange has grown into a vibrant marketplace connecting buyers 
-                  and sellers across the region.
+                  In a world of fast fashion and endless consumption, we saw a problem: beautiful, high-quality clothes 
+                  were ending up in landfills while people searched endlessly for affordable, unique pieces. We asked ourselves, 
+                  <span className="block mt-2 font-semibold text-foreground italic">"What if fashion could be circular? What if your clothes could live multiple lives?"</span>
                 </p>
+                
                 <p>
-                  We believe that every item has a story and value. We're here to help you find your next treasure or 
-                  give a new life to things you no longer need. From electronics to furniture, books to fashion,
-                  you're part of a movement towards a more sustainable future.
+                  That's how SecondHand-Store was born. We're not just a marketplace—we're a community of conscious 
+                  fashion lovers who believe that:
+                </p>
+                
+                <div className="bg-primary/5 rounded-lg p-6 my-8 border-l-4 border-primary">
+                  <ul className="space-y-3 text-left">
+                    <li className="flex items-start gap-3">
+                      <span className="text-primary font-bold mt-1">✓</span>
+                      <span><strong>Sustainable fashion is the future</strong> — Every piece you buy here reduces demand for new production and keeps clothes out of waste.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-primary font-bold mt-1">✓</span>
+                      <span><strong>Quality never goes out of style</strong> — Designer pieces, vintage gems, and gently-worn favorites deserve a second chapter.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-primary font-bold mt-1">✓</span>
+                      <span><strong>Everyone deserves access to great fashion</strong> — Why pay full price when you can find incredible deals on loved pieces?</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-primary font-bold mt-1">✓</span>
+                      <span><strong>Trust and community matter</strong> — We've built a platform where honesty thrives and real people connect over clothing.</span>
+                    </li>
+                  </ul>
+                </div>
+                
+                <p>
+                  From vintage jackets to designer dresses, from timeless boots to contemporary streetwear—if it's made with 
+                  love and deserves a better home, it belongs here. Whether you're clearing your closet or finding your next 
+                  favorite piece, you're part of something bigger: a movement toward conscious consumption and endless style.
+                </p>
+                
+                <p className="text-sm italic pt-4 border-t border-muted">
+                  Every transaction is a small act of rebellion against waste. Every piece finds the person who'll treasure it next. 
+                  That's the SecondHand-Store promise.
                 </p>
               </div>
             </motion.div>

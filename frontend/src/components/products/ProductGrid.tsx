@@ -11,13 +11,16 @@ export const ProductGrid = ({ products, title }: ProductGridProps) => {
   const navigate = useNavigate();
 
   return (
-    <section className="animate-fade-in">
+    <section className="animate-fade-in w-full">
       {title && (
-        <h2 className="mb-6 font-display text-2xl font-semibold text-foreground">
-          {title}
-        </h2>
+        <div className="mb-8 pb-4 border-b-2">
+          <h2 className="font-display text-3xl font-bold text-foreground bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">
+            {title}
+          </h2>
+          <p className="text-sm text-muted-foreground mt-2">Discover premium second-hand items</p>
+        </div>
       )}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 md:gap-5 lg:grid-cols-5 lg:gap-6">
         {products.map((product) => (
           <ProductCard
             key={product._id}

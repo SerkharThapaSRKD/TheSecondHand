@@ -169,27 +169,34 @@ export default function CartPage() {
             {cart.items.map((it) => (
               <Card key={it.product._id} className="shadow-sm">
                 <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4">
-                  <div>
+                  <div className="flex-1">
                     <div className="font-semibold text-lg">
                       {it.product.name}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      NRs {it.price} each
+                      NRs {it.price} per item
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {it.product.clothType && (
+                        <span>{it.product.clothType.replace('-', ' ')}</span>
+                      )}
+                      {it.product.size && (
+                        <span> • Size: {it.product.size}</span>
+                      )}
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <Input
-                      type="number"
-                      min={1}
-                      value={it.quantity}
-                      onChange={(e) =>
-                        updateQty(it.product._id, Number(e.target.value))
-                      }
-                      className="w-20"
-                    />
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-primary">
+                        NRs {(it.price * it.quantity).toFixed(2)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Qty: {it.quantity}
+                      </div>
+                    </div>
                     <Button
-                      variant="outline"
+                      variant="destructive"
                       size="icon"
                       onClick={() => removeFromCart(it.product._id)}>
                       <Trash2 className="w-4 h-4" />

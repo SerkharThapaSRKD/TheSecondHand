@@ -23,20 +23,32 @@ import {
 } from "@/components/ui/card";
 import { Upload, ImagePlus, X } from "lucide-react";
 
-const categories = [
-  "Jackets",
-  "Tops",
-  "Bottoms",
-  "Shoes",
-  "Bags",
-  "Accessories",
-  "Sweaters",
+const clothTypes = [
+  { value: "t-shirt", label: "T-Shirt" },
+  { value: "shirt", label: "Shirt" },
+  { value: "jacket", label: "Jacket" },
+  { value: "blazer", label: "Blazer" },
+  { value: "sweater", label: "Sweater" },
+  { value: "hoodie", label: "Hoodie" },
+  { value: "pants", label: "Pants" },
+  { value: "jeans", label: "Jeans" },
+  { value: "shorts", label: "Shorts" },
+  { value: "skirt", label: "Skirt" },
+  { value: "dress", label: "Dress" },
+  { value: "saree", label: "Saree" },
+  { value: "shoes", label: "Shoes" },
+  { value: "boots", label: "Boots" },
+  { value: "sandals", label: "Sandals" },
+  { value: "bag", label: "Bag" },
+  { value: "accessories", label: "Accessories" },
+  { value: "other", label: "Other" },
 ];
 const conditions = [
-  { value: "new", label: "New with tags" },
+  { value: "new-with-tags", label: "New with tags" },
   { value: "like-new", label: "Like New" },
   { value: "good", label: "Good" },
   { value: "fair", label: "Fair" },
+  { value: "worn", label: "Worn" },
 ];
 const sizes = [
   "XS",
@@ -54,6 +66,19 @@ const sizes = [
   "11",
   "12",
 ];
+const materials = [
+  "Cotton",
+  "Polyester",
+  "Wool",
+  "Silk",
+  "Linen",
+  "Denim",
+  "Leather",
+  "Suede",
+  "Synthetic",
+  "Blend",
+  "Other",
+];
 
 const Sell = () => {
   const { user, isAuthenticated } = useAuth();
@@ -66,7 +91,10 @@ const Sell = () => {
     price: "",
     size: "",
     gender: "",
-    category: "",
+    clothType: "",
+    color: "",
+    material: "",
+    brand: "",
     condition: "",
     location: "",
     images: [
@@ -88,7 +116,10 @@ const Sell = () => {
         fd.append("price", String(parseFloat(formData.price)));
         fd.append("size", formData.size);
         fd.append("gender", formData.gender as string);
-        fd.append("category", formData.category);
+        fd.append("clothType", formData.clothType);
+        fd.append("color", formData.color);
+        fd.append("material", formData.material);
+        fd.append("brand", formData.brand);
         fd.append("condition", formData.condition);
         fd.append("location", formData.location);
         files.slice(0, 5).forEach((f) => fd.append("images", f));
@@ -101,10 +132,11 @@ const Sell = () => {
             price: parseFloat(formData.price),
             gender: formData.gender as "men" | "women" | "unisex",
             condition: formData.condition as
-              | "new"
+              | "new-with-tags"
               | "like-new"
               | "good"
-              | "fair",
+              | "fair"
+              | "worn",
           },
           user
         );
@@ -276,19 +308,63 @@ const Sell = () => {
                 </div>
 
                 <div>
-                  <Label>Category *</Label>
+                  <Label htmlFor="brand">Brand</Label>
+                  <Input
+                    id="brand"
+                    placeholder="e.g., Nike, H&M"
+                    value={formData.brand}
+                    onChange={(e) =>
+                      setFormData({ ...formData, brand: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="color">Color</Label>
+                  <Input
+                    id="color"
+                    placeholder="e.g., Blue, Black"
+                    value={formData.color}
+                    onChange={(e) =>
+                      setFormData({ ...formData, color: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div>
+                  <Label>Material</Label>
                   <Select
-                    value={formData.category}
+                    value={formData.material}
                     onValueChange={(v) =>
-                      setFormData({ ...formData, category: v })
+                      setFormData({ ...formData, material: v })
                     }>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder="Select material" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
+                      {materials.map((mat) => (
+                        <SelectItem key={mat} value={mat}>
+                          {mat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Cloth Type *</Label>
+                  <Select
+                    value={formData.clothType}
+                    onValueChange={(v) =>
+                      setFormData({ ...formData, clothType: v })
+                    }>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select cloth type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clothTypes.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -7,6 +7,8 @@ const UserSchema = new mongoose.Schema({
   isAdmin: { type: Boolean, default: false },
   totalSales: { type: Number, default: 0 },
   totalPurchases: { type: Number, default: 0 },
+  totalRevenue: { type: Number, default: 0 },
+  totalSpent: { type: Number, default: 0 },
   averageRating: { type: Number, default: 0 },
   reviewCount: { type: Number, default: 0 },
   avatar: { type: String, default: "" },

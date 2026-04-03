@@ -18,19 +18,18 @@ import {
   LogOut,
   User,
   ShoppingCart,
-  MinusCircle,
-  PlusCircle,
   Trash2,
   Heart,
   Sun,
   Moon,
+  History,
 } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 export const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
-  const { cart, updateQty, removeFromCart } = useCart();
+  const { cart, removeFromCart } = useCart();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const cartCount = (cart?.items || []).reduce(
@@ -103,29 +102,7 @@ export const Navbar = () => {
                           {it.product.name}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          NRs {it.price.toFixed(2)}
-                        </div>
-                        <div className="mt-1 flex items-center gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              updateQty(
-                                it.product._id,
-                                Math.max(1, (it.quantity || 1) - 1)
-                              );
-                            }}
-                            className="p-1">
-                            <MinusCircle className="h-4 w-4" />
-                          </button>
-                          <div className="text-sm">{it.quantity}</div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              updateQty(it.product._id, (it.quantity || 1) + 1);
-                            }}
-                            className="p-1">
-                            <PlusCircle className="h-4 w-4" />
-                          </button>
+                          NRs {it.price.toFixed(2)} x {it.quantity}
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-2">
@@ -205,6 +182,10 @@ export const Navbar = () => {
                     <DropdownMenuItem onClick={() => navigate("/favorites")}>
                       <Heart className="mr-2 h-4 w-4" />
                       Favorites
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/transactions")}>
+                      <History className="mr-2 h-4 w-4" />
+                      Transactions
                     </DropdownMenuItem>
                     {user?.isAdmin && (
                       <DropdownMenuItem onClick={() => navigate("/admin")}>

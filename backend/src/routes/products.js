@@ -248,7 +248,10 @@ router.post(
       price,
       size,
       gender,
-      category,
+      clothType,
+      color,
+      material,
+      brand,
       condition,
       location,
     } = req.body;
@@ -267,8 +270,8 @@ router.post(
       }
     }
 
-    if (!name || !price)
-      return res.status(400).json({ message: "Missing fields" });
+    if (!name || !price || !clothType || !gender || !size || !location)
+      return res.status(400).json({ message: "Missing required fields" });
     try {
       const seller = await User.findById(req.user.id).exec();
       if (!seller) return res.status(400).json({ message: "Seller not found" });
@@ -278,7 +281,10 @@ router.post(
         price,
         size,
         gender,
-        category,
+        clothType,
+        color: color || "",
+        material: material || "",
+        brand: brand || "",
         condition,
         location,
         images: Array.isArray(images) ? images : [],
@@ -314,7 +320,10 @@ router.put(
         price,
         size,
         gender,
-        category,
+        clothType,
+        color,
+        material,
+        brand,
         condition,
         location,
         status,
@@ -326,7 +335,10 @@ router.put(
       if (price !== undefined) product.price = price;
       if (size !== undefined) product.size = size;
       if (gender !== undefined) product.gender = gender;
-      if (category !== undefined) product.category = category;
+      if (clothType !== undefined) product.clothType = clothType;
+      if (color !== undefined) product.color = color;
+      if (material !== undefined) product.material = material;
+      if (brand !== undefined) product.brand = brand;
       if (condition !== undefined) product.condition = condition;
       if (location !== undefined) product.location = location;
       if (status !== undefined) product.status = status;
@@ -374,6 +386,65 @@ router.delete("/:id", authMiddleware, async (req, res) => {
 
     await Product.findByIdAndDelete(req.params.id);
     res.json({ message: "Product deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Edit product by seller
+router.put("/:id/edit", authMiddleware, upload.array("images", 5), async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    // Check ownership - only seller can edit
+    if (product.seller.toString() !== req.user.id) {
+      return res.status(403).json({ message: "You can only edit your own products" });
+    }
+
+    // Don't allow editing sold items
+    if (product.status === "sold") {
+      return res.status(400).json({ message: "Cannot edit sold products" });
+    }
+
+    const {
+      name,
+      description,
+      price,
+      size,
+      gender,
+      clothType,
+      color,
+      material,
+      brand,
+      condition,
+      location,
+    } = req.body;
+
+    // Update basic fields if provided
+    if (name !== undefined && name.trim()) product.name = name;
+    if (description !== undefined && description.trim()) product.description = description;
+    if (price !== undefined && price > 0) product.price = price;
+    if (size !== undefined) product.size = size;
+    if (gender !== undefined) product.gender = gender;
+    if (clothType !== undefined) product.clothType = clothType;
+    if (color !== undefined) product.color = color;
+    if (material !== undefined) product.material = material;
+    if (brand !== undefined) product.brand = brand;
+    if (condition !== undefined) product.condition = condition;
+    if (location !== undefined && location.trim()) product.location = location;
+
+    // Handle image updates - only replace if new images are uploaded
+    if (req.files && Array.isArray(req.files) && req.files.length) {
+      product.images = req.files.map((f) => `/uploads/${f.filename}`);
+    }
+
+    await product.save();
+    const populated = await Product.findById(product._id)
+      .populate("seller", "-password")
+      .exec();
+    res.json({ product: populated });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });

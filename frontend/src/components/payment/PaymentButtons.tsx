@@ -1,11 +1,13 @@
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 
 type Props = {
   amount: number; // amount in smallest currency unit for Stripe (e.g., cents)
   currency?: string;
   name?: string;
   productId?: string;
+  sellerID?: string; // Added to check if user owns the product
 };
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
@@ -16,7 +18,14 @@ export default function PaymentButtons({
   currency = "usd",
   name = "Purchase",
   productId,
+  sellerID,
 }: Props) {
+  const { user } = useAuth();
+
+  // Prevent payment if user is the seller
+  if (sellerID && user?.id === sellerID) {
+    return null;
+  }
   useEffect(() => {
     // load Khalti script if public key provided
     if (KHALTI_PUBLIC) {

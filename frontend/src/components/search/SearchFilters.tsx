@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react';
 interface Filters {
   search: string;
   gender: string;
-  category: string;
+  clothType: string;
   condition: string;
   location: string;
   minPrice: number | "";
@@ -30,8 +30,26 @@ interface SearchFiltersProps {
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-const categories = ['All', 'Jackets', 'Tops', 'Bottoms', 'Shoes', 'Bags', 'Accessories', 'Sweaters'];
-const conditions = ['All', 'new', 'like-new', 'good', 'fair'];
+const clothTypes = [
+  { value: 't-shirt', label: 'T-Shirt' },
+  { value: 'shirt', label: 'Shirt' },
+  { value: 'jacket', label: 'Jacket' },
+  { value: 'blazer', label: 'Blazer' },
+  { value: 'sweater', label: 'Sweater' },
+  { value: 'hoodie', label: 'Hoodie' },
+  { value: 'pants', label: 'Pants' },
+  { value: 'jeans', label: 'Jeans' },
+  { value: 'shorts', label: 'Shorts' },
+  { value: 'skirt', label: 'Skirt' },
+  { value: 'dress', label: 'Dress' },
+  { value: 'saree', label: 'Saree' },
+  { value: 'shoes', label: 'Shoes' },
+  { value: 'boots', label: 'Boots' },
+  { value: 'sandals', label: 'Sandals' },
+  { value: 'bag', label: 'Bag' },
+  { value: 'accessories', label: 'Accessories' },
+];
+const conditions = ['All', 'new-with-tags', 'like-new', 'good', 'fair', 'worn'];
 const genders = ['All', 'Men', 'Women', 'Unisex'];
 
 export const SearchFilters = ({ filters, setFilters, onClear }: SearchFiltersProps) => {
@@ -140,7 +158,7 @@ export const SearchFilters = ({ filters, setFilters, onClear }: SearchFiltersPro
             </div>
         </div>
 
-        <Accordion type="multiple" defaultValue={["category", "gender", "condition"]} className="w-full">
+        <Accordion type="multiple" defaultValue={["clothType", "gender", "condition"]} className="w-full">
             
             {/* Gender */}
             <AccordionItem value="gender" className="border-b-0 mb-2">
@@ -170,25 +188,25 @@ export const SearchFilters = ({ filters, setFilters, onClear }: SearchFiltersPro
                 </AccordionContent>
             </AccordionItem>
 
-            {/* Category */}
-            <AccordionItem value="category" className="border-b-0 mb-2">
+            {/* Cloth Type */}
+            <AccordionItem value="clothType" className="border-b-0 mb-2">
                 <AccordionTrigger className="text-sm font-medium hover:no-underline py-2 rounded-md hover:bg-muted/50 px-2 transition-colors">
-                    Category
+                    Cloth Type
                 </AccordionTrigger>
                 <AccordionContent className="px-2 pt-2">
                     <div className="grid grid-cols-2 gap-2">
-                        {categories.map((cat) => {
-                            const val = cat.toLowerCase();
-                            const isChecked = filters.category === val;
+                        {clothTypes.map((type) => {
+                            const val = type.value;
+                            const isChecked = filters.clothType === val;
                             return (
-                                <div key={cat} className="flex items-center space-x-2 group col-span-1">
+                                <div key={type.value} className="flex items-center space-x-2 group col-span-1">
                                     <Checkbox 
-                                        id={`cat-${cat}`} 
+                                        id={`cloth-${type.value}`} 
                                         checked={isChecked}
-                                        onCheckedChange={() => handleCheckboxChange('category', val)}
+                                        onCheckedChange={() => handleCheckboxChange('clothType', val)}
                                     />
-                                    <label htmlFor={`cat-${cat}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer w-full py-1 group-hover:text-primary transition-colors truncate">
-                                        {cat}
+                                    <label htmlFor={`cloth-${type.value}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer w-full py-1 group-hover:text-primary transition-colors truncate">
+                                        {type.label}
                                     </label>
                                 </div>
                             )

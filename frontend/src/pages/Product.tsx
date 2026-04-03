@@ -6,12 +6,13 @@ import ReviewForm from "@/components/review/ReviewForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Star, User, ShoppingCart, Heart, ArrowLeft, Share2, Eye } from "lucide-react";
+import { MapPin, Star, User, ShoppingCart, Heart, ArrowLeft, Share2, Eye, Check, Edit2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import PaymentButtons from "@/components/payment/PaymentButtons";
+import { ProductEditDialog } from "@/components/products/ProductEditDialog";
 
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
@@ -21,13 +22,19 @@ const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 export default function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
-  const { isAuthenticated, wishlist, addToWishlist, removeFromWishlist } = useAuth();
+  const { addToCart, isInCart } = useCart();
+  const { isAuthenticated, wishlist, addToWishlist, removeFromWishlist, user: currentUser } = useAuth();
   const [product, setProduct] = useState<P | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const isLiked = product && wishlist.includes(product._id);
+  const isProductInCart = product ? isInCart(product._id) : false;
+  const isOwnItem = product && currentUser && (
+    currentUser.id === (typeof product.seller === "object" ? product.seller._id : product.seller) ||
+    currentUser._id === (typeof product.seller === "object" ? product.seller._id : product.seller)
+  );
 
   const toggleLike = () => {
     if (!isAuthenticated) return navigate("/login");
@@ -37,6 +44,14 @@ export default function ProductPage() {
     } else {
         addToWishlist(product._id);
     }
+  };
+
+  const handleProductUpdate = (updatedProduct: P) => {
+    setProduct(updatedProduct);
+    toast({
+      title: "Success",
+      description: "Product updated successfully",
+    });
   };
 
   const fetchProduct = async () => {
@@ -52,6 +67,17 @@ export default function ProductPage() {
   useEffect(() => {
     fetchProduct();
   }, [id]);
+
+  // Reset payment state when product changes or if it's the user's own item
+  useEffect(() => {
+    if (product && product.seller && currentUser) {
+      const sellerId = typeof product.seller === "object" ? product.seller._id : product.seller;
+      const userId = currentUser.id || currentUser._id;
+      if (sellerId && userId && sellerId.toString() === userId.toString()) {
+        setShowPayment(false);
+      }
+    }
+  }, [product, currentUser]);
 
   if (!product)
     return (
@@ -133,33 +159,36 @@ export default function ProductPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               className="space-y-6">
-              <div className="space-y-3">
-                <Badge className="w-fit" variant="secondary">
-                  {product.category}
-                </Badge>
-                <h1 className="text-4xl font-extrabold tracking-tight">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-primary text-white" variant="default">
+                    {product.clothType?.replace('-', ' ').toUpperCase()}
+                  </Badge>
+                  {product.status === "sold" && (
+                    <Badge variant="destructive">Sold Out</Badge>
+                  )}
+                </div>
+                <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground leading-tight">
                   {product.name}
                 </h1>
               </div>
 
-              <div className="flex items-center gap-4">
-                <span className="text-3xl font-bold text-primary">
-                  NRs {product.price}
-                </span>
-                <div className="flex items-center gap-1">
-                  <Star className="w-5 h-5 text-yellow-500" />
-                  <span className="font-medium">
-                    {product.averageRating?.toFixed(1) || 0}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    ({product.reviewCount || 0} reviews)
-                  </span>
+              {/* PRICE & RATINGS */}
+              <div className="bg-gradient-to-br from-primary/10 to-indigo-600/10 dark:from-primary/20 dark:to-indigo-600/20 rounded-2xl p-6 space-y-4 border border-primary/20">
+                <div className="flex items-baseline gap-4">
+                  <span className="text-5xl font-bold text-primary">NRs {product.price}</span>
+                  <div className="text-sm text-muted-foreground">All-in price • No hidden charges</div>
                 </div>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <Eye className="w-5 h-5" />
-                  <span className="text-sm font-medium">
-                    {product.views || 0} views
-                  </span>
+                <div className="flex items-center gap-8 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                    <span className="text-lg font-bold">{product.averageRating?.toFixed(1) || 0}</span>
+                    <span className="text-sm text-muted-foreground">({product.reviewCount || 0} {product.reviewCount === 1 ? "review" : "reviews"})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-sm font-medium">{product.views || 0} views</span>
+                  </div>
                 </div>
               </div>
 
@@ -167,42 +196,97 @@ export default function ProductPage() {
                 {product.description}
               </p>
 
-              <div className="flex gap-3 pt-4 flex-wrap">
+              {/* OWN ITEM MESSAGE */}
+              {isOwnItem && (
+                <Card className="bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-200 dark:border-blue-900 p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="rounded-full bg-blue-100 dark:bg-blue-900/50 p-3 flex-shrink-0">
+                      <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg text-blue-900 dark:text-blue-100">This is Your Item</h3>
+                      <p className="text-sm text-blue-800 dark:text-blue-200 mt-1">
+                        You listed this item for sale. Edit your listing or view your profile for more options.
+                      </p>
+                      <div className="flex gap-2 mt-3">
+                        <Button 
+                          onClick={() => setEditDialogOpen(true)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                          size="sm"
+                        >
+                          <Edit2 className="w-4 h-4" /> Edit Listing
+                        </Button>
+                        <Button 
+                          onClick={() => navigate("/profile")}
+                          variant="outline"
+                          className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
+                          size="sm"
+                        >
+                          View Profile
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              )}
+
+              {/* ACTION BUTTONS - Only for other people's items */}
+              {!isOwnItem && (
+              <div className="flex gap-3 flex-wrap pt-4">
                 {product.status === "sold" ? (
-                  <Button size="lg" disabled className="w-full bg-muted text-muted-foreground">
-                    Item Sold
+                  <Button size="lg" disabled className="flex-1 bg-muted text-muted-foreground">
+                    <span className="text-lg font-semibold">Item Sold</span>
+                  </Button>
+                ) : isProductInCart ? (
+                  <Button size="lg" disabled className="flex-1 gap-2 bg-green-600 text-white hover:bg-green-600">
+                    <Check className="w-5 h-5" /> Already in Cart
                   </Button>
                 ) : (
                   <>
                     <Button 
                       size="lg" 
-                      className="gap-2"
+                      className="flex-1 gap-2 font-semibold"
                       onClick={() => addToCart(product, 1)}
                     >
                       <ShoppingCart className="w-5 h-5" /> Add to Cart
                     </Button>
                     {!showPayment ? (
-                      <Button size="lg" variant="outline" onClick={() => setShowPayment(true)}>
+                      <Button size="lg" variant="outline" onClick={() => !isOwnItem && setShowPayment(true)} className="flex-1 font-semibold border-2">
                         Buy Now
                       </Button>
                     ) : (
                       <div className="w-full">
-                        <PaymentButtons
-                          amount={Math.round((product.price || 0) * 100)}
-                          name={product.name}
-                          currency="usd"
-                          productId={product._id}
-                        />
+                        {!isOwnItem && (
+                          <PaymentButtons
+                            amount={Math.round((product.price || 0) * 100)}
+                            name={product.name}
+                            currency="usd"
+                            productId={product._id}
+                            sellerID={product.seller?._id || product.seller}
+                          />
+                        )}
                       </div>
                     )}
                   </>
                 )}
               </div>
+              )}
 
-              {/* Share Section */}
-              <div className="flex items-center gap-4 pt-4 border-t">
-                <span className="text-sm font-medium text-muted-foreground">Share:</span>
-                <div className="flex gap-2">
+{/* WISHLIST & SHARE */}
+              <div className="flex items-center justify-between gap-4 pt-6 border-t">
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  onClick={toggleLike}
+                  className="gap-2 hover:bg-red-50 dark:hover:bg-red-950"
+                >
+                  <Heart className={`w-5 h-5 ${
+                    isLiked ? "fill-red-500 text-red-500" : "text-gray-400"
+                  }`} />
+                  {isLiked ? "Saved" : "Save to Favorites"}
+                </Button>
+                <div className="flex items-center gap-2 ml-auto">
+                  <span className="text-sm font-medium text-muted-foreground">Share:</span>
                   <Button
                     size="icon"
                     variant="ghost"
@@ -228,7 +312,7 @@ export default function ProductPage() {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="rounded-full hover:bg-gray-100"
+                    className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
                     onClick={() => {
                       navigator.clipboard.writeText(window.location.href);
                       toast({
@@ -242,16 +326,69 @@ export default function ProductPage() {
                 </div>
               </div>
 
-              <Card className="mt-6">
-                <CardContent className="space-y-3 p-4">
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-muted-foreground" />
-                    <span>Seller: {product.seller?.name}</span>
+              {/* PRODUCT SPECS */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-y">
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-muted-foreground">Size</p>
+                  <p className="text-lg font-bold">{product.size}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-muted-foreground">Gender</p>
+                  <p className="text-lg font-bold capitalize">{product.gender}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-muted-foreground">Condition</p>
+                  <Badge className="w-fit text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                    {product.condition?.replace('-', ' ')}
+                  </Badge>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-muted-foreground">Type</p>
+                  <p className="text-lg font-bold capitalize">{product.clothType?.replace('-', ' ')}</p>
+                </div>
+              </div>
+
+              {/* SELLER CARD - Premium Style */}
+              <Card className="mt-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 border-2 border-blue-200 dark:border-gray-700">
+                <CardContent className="p-6">
+                  <h3 className="font-bold text-lg mb-4">About the Seller</h3>
+                  <div className="flex items-start gap-4">
+                    <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-600 flex-shrink-0 border-2 border-primary">
+                      {product.seller?.avatar ? (
+                        <img
+                          src={product.seller.avatar.startsWith('http') ? product.seller.avatar : `${API}${product.seller.avatar}`}
+                          alt={product.seller.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary to-indigo-600 text-white text-xl font-bold">
+                          {product.seller?.name?.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-lg font-bold text-foreground">{product.seller?.name}</p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                        <MapPin className="w-4 h-4" />
+                        {product.location}
+                      </div>
+                      <div className="flex gap-6 mt-3">
+                        <div>
+                          <p className="font-bold text-primary text-lg">{product.seller?.totalSales || 0}</p>
+                          <p className="text-xs text-muted-foreground">Items Sold</p>
+                        </div>
+                        <div>
+                          <p className="font-bold text-primary text-lg">{product.seller?.totalPurchases || 0}</p>
+                          <p className="text-xs text-muted-foreground">Items Bought</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-muted-foreground" />
-                    <span>{product.location}</span>
-                  </div>
+                  {product.seller?.about && (
+                    <p className="text-sm text-muted-foreground italic mt-4 p-3 bg-white/80 dark:bg-gray-800/80 rounded-lg border-l-4 border-primary">
+                      "{product.seller.about}"
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
@@ -283,6 +420,16 @@ export default function ProductPage() {
             </motion.div>
           </div>
         </section>
+        
+        {/* EDIT DIALOG */}
+        {product && (
+          <ProductEditDialog
+            product={product}
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            onSave={handleProductUpdate}
+          />
+        )}
       </main>
       <Footer />
     </div>

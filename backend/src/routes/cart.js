@@ -24,8 +24,13 @@ router.post("/", authMiddleware, async (req, res) => {
     if (!productId)
       return res.status(400).json({ message: "Missing productId" });
 
-    const product = await Product.findById(productId).exec();
+    const product = await Product.findById(productId).populate("seller").exec();
     if (!product) return res.status(404).json({ message: "Product not found" });
+
+    // Check if user is trying to buy their own item
+    if (product.seller && product.seller._id.toString() === req.user.id) {
+      return res.status(403).json({ message: "You cannot buy your own items" });
+    }
 
     let cart = await Cart.findOne({ user: req.user.id }).exec();
     if (!cart) {

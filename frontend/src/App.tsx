@@ -12,7 +12,9 @@ import Signup from "./pages/Signup";
 import Search from "./pages/Search";
 import Sell from "./pages/Sell";
 import Admin from "./pages/Admin";
+import AdminUserDetail from "./pages/AdminUserDetail";
 import Profile from "./pages/Profile";
+import Transactions from "./pages/Transactions";
 import NotFound from "./pages/NotFound";
 import Cart from "./pages/Cart";
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -39,8 +41,10 @@ const App = () => (
                 <Route path="/search" element={<Search />} />
                 <Route path="/sell" element={<Sell />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/admin/user/:userId" element={<AdminUserDetail />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:id" element={<Profile />} />
+                <Route path="/transactions" element={<Transactions />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/favorites" element={<Favorites />} />
                 <Route path="/payment/success" element={<PaymentSuccess />} />

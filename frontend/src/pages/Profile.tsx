@@ -269,6 +269,9 @@ const Profile = () => {
                    <Button onClick={() => navigate("/sell")} className="w-full">
                     List Item
                   </Button>
+                   <Button onClick={() => navigate("/transactions")} variant="secondary" className="w-full">
+                    View Transactions
+                  </Button>
                   </>
                 )}
                 {editing && (

@@ -2,7 +2,10 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const { authMiddleware } = require("../middleware/auth");
+const Product = require("../models/Product");
+const Transaction = require("../models/Transaction");
+const Order = require("../models/Order");
+const { authMiddleware, adminOnly } = require("../middleware/auth");
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "devsecret";
@@ -195,6 +198,117 @@ router.get("/user/:id", async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json({ user });
   } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get all users (admin only)
+router.get("/admin/users/all", authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const users = await User.find()
+      .select("-password")
+      .sort({ createdAt: -1 });
+    
+    // Enrich each user with basic stats
+    const enrichedUsers = await Promise.all(users.map(async (user) => {
+      const productCount = await Product.countDocuments({ seller: user._id });
+      const soldCount = await Product.countDocuments({ seller: user._id, status: "sold" });
+      const transactionCount = await Transaction.countDocuments({ seller: user._id });
+      
+      return {
+        ...user.toObject(),
+        stats: {
+          productsListed: productCount,
+          productsSold: soldCount,
+          transactionCount: transactionCount,
+          totalRevenue: user.totalRevenue || 0,
+          totalSpent: user.totalSpent || 0,
+        }
+      };
+    }));
+
+    res.json({ users: enrichedUsers });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get user details by ID (admin only)
+router.get("/admin/user/:id", authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Get user's products
+    const userProducts = await Product.find({ seller: req.params.id })
+      .select("_id name price status createdAt")
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    // Get user's transactions as seller
+    const sellerTransactions = await Transaction.find({ seller: req.params.id })
+      .select("amount paymentMethod createdAt product buyer")
+      .populate("product", "name")
+      .populate("buyer", "name email")
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    // Get user's transactions as buyer
+    const buyerTransactions = await Transaction.find({ buyer: req.params.id })
+      .select("amount paymentMethod createdAt product seller")
+      .populate("product", "name")
+      .populate("seller", "name email")
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    // Get user's orders
+    const userOrders = await Order.find({ user: req.params.id })
+      .select("_id total paymentMethod paymentStatus createdAt")
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    // Calculate total revenue from transactions
+    const totalRevenueFromTransactions = sellerTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    // Calculate total spent from transactions
+    const totalSpentFromTransactions = buyerTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    res.json({ 
+      user: {
+        ...user.toObject(),
+        stats: {
+          totalRevenue: user.totalRevenue || 0,
+          totalSpent: user.totalSpent || 0,
+          revenueFromTransactions: totalRevenueFromTransactions,
+          spentFromTransactions: totalSpentFromTransactions,
+          totalSales: user.totalSales || 0,
+          totalPurchases: user.totalPurchases || 0,
+          productsListed: await Product.countDocuments({ seller: req.params.id }),
+          productsSold: await Product.countDocuments({ seller: req.params.id, status: "sold" }),
+          productsPending: await Product.countDocuments({ seller: req.params.id, status: "pending" }),
+          productsApproved: await Product.countDocuments({ seller: req.params.id, status: "approved" }),
+        },
+        recentProducts: userProducts,
+        sellerTransactions: sellerTransactions,
+        buyerTransactions: buyerTransactions,
+        orders: userOrders,
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Delete user (admin only)
+router.delete("/admin/user/:id", authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({ message: "User deleted" });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });

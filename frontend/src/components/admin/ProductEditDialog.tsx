@@ -39,7 +39,10 @@ export const ProductEditDialog: React.FC<ProductEditDialogProps> = ({
     price: product.price,
     size: product.size,
     gender: product.gender,
-    category: product.category,
+    clothType: product.clothType,
+    color: product.color || "",
+    material: product.material || "",
+    brand: product.brand || "",
     condition: product.condition,
     location: product.location,
     status: product.status,
@@ -159,16 +162,17 @@ export const ProductEditDialog: React.FC<ProductEditDialogProps> = ({
                 <Select
                   value={formData.condition}
                   onValueChange={(
-                    value: "new" | "like-new" | "good" | "fair"
+                    value: "new-with-tags" | "like-new" | "good" | "fair" | "worn"
                   ) => setFormData({ ...formData, condition: value })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="new-with-tags">New with Tags</SelectItem>
                     <SelectItem value="like-new">Like New</SelectItem>
                     <SelectItem value="good">Good</SelectItem>
                     <SelectItem value="fair">Fair</SelectItem>
+                    <SelectItem value="worn">Worn</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -176,14 +180,36 @@ export const ProductEditDialog: React.FC<ProductEditDialogProps> = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="category">Category</Label>
-                <Input
-                  id="category"
-                  value={formData.category}
-                  onChange={(e) =>
-                    setFormData({ ...formData, category: e.target.value })
-                  }
-                />
+                <Label htmlFor="clothType">Cloth Type</Label>
+                <Select
+                  value={formData.clothType}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, clothType: value as any })
+                  }>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="t-shirt">T-Shirt</SelectItem>
+                    <SelectItem value="shirt">Shirt</SelectItem>
+                    <SelectItem value="jacket">Jacket</SelectItem>
+                    <SelectItem value="blazer">Blazer</SelectItem>
+                    <SelectItem value="sweater">Sweater</SelectItem>
+                    <SelectItem value="hoodie">Hoodie</SelectItem>
+                    <SelectItem value="pants">Pants</SelectItem>
+                    <SelectItem value="jeans">Jeans</SelectItem>
+                    <SelectItem value="shorts">Shorts</SelectItem>
+                    <SelectItem value="skirt">Skirt</SelectItem>
+                    <SelectItem value="dress">Dress</SelectItem>
+                    <SelectItem value="saree">Saree</SelectItem>
+                    <SelectItem value="shoes">Shoes</SelectItem>
+                    <SelectItem value="boots">Boots</SelectItem>
+                    <SelectItem value="sandals">Sandals</SelectItem>
+                    <SelectItem value="bag">Bag</SelectItem>
+                    <SelectItem value="accessories">Accessories</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="grid gap-2">
@@ -194,6 +220,44 @@ export const ProductEditDialog: React.FC<ProductEditDialogProps> = ({
                   onChange={(e) =>
                     setFormData({ ...formData, location: e.target.value })
                   }
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="brand">Brand</Label>
+                <Input
+                  id="brand"
+                  value={formData.brand}
+                  onChange={(e) =>
+                    setFormData({ ...formData, brand: e.target.value })
+                  }
+                  placeholder="e.g., Nike, H&M"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="color">Color</Label>
+                <Input
+                  id="color"
+                  value={formData.color}
+                  onChange={(e) =>
+                    setFormData({ ...formData, color: e.target.value })
+                  }
+                  placeholder="e.g., Blue"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="material">Material</Label>
+                <Input
+                  id="material"
+                  value={formData.material}
+                  onChange={(e) =>
+                    setFormData({ ...formData, material: e.target.value })
+                  }
+                  placeholder="e.g., Cotton"
                 />
               </div>
             </div>

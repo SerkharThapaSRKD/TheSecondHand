@@ -34,8 +34,11 @@ export interface Product {
   price: number;
   size: string;
   gender: 'men' | 'women' | 'unisex';
-  category: string;
-  condition: 'new' | 'like-new' | 'good' | 'fair';
+  clothType: 't-shirt' | 'shirt' | 'jacket' | 'blazer' | 'sweater' | 'hoodie' | 'pants' | 'jeans' | 'shorts' | 'skirt' | 'dress' | 'saree' | 'shoes' | 'boots' | 'sandals' | 'bag' | 'accessories' | 'other';
+  color?: string;
+  material?: string;
+  brand?: string;
+  condition: 'new-with-tags' | 'like-new' | 'good' | 'fair' | 'worn';
   location: string;
   images: string[];
   seller: User;

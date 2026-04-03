@@ -8,6 +8,7 @@ const productRoutes = require("./routes/products");
 const paymentRoutes = require("./routes/payments");
 const cartRoutes = require("./routes/cart");
 const orderRoutes = require("./routes/orders");
+const transactionRoutes = require("./routes/transactions");
 const User = require("./models/User");
 
 const app = express();
@@ -28,6 +29,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/transactions", transactionRoutes);
 
 async function bootstrapAdmin() {
   const adminEmail = "admin@thrift.com";

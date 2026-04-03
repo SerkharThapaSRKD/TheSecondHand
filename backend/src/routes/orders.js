@@ -5,6 +5,7 @@ const Cart = require("../models/Cart");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
 const User = require("../models/User");
+const Transaction = require("../models/Transaction");
 const Stripe = require("stripe");
 const { sendOrderConfirmation, sendSellerNotification } = require("../utils/email");
 
@@ -41,6 +42,15 @@ router.post("/", authMiddleware, async (req, res) => {
       0
     );
 
+    // SECURITY CHECK: Verify user is not trying to buy their own items
+    const productIds = orderItems.map((i) => i.product);
+    const productsToCheck = await Product.find({ _id: { $in: productIds } }).select("seller");
+    for (const product of productsToCheck) {
+      if (product.seller && product.seller.toString() === req.user.id) {
+        return res.status(403).json({ message: "You cannot buy your own items" });
+      }
+    }
+
     const order = await Order.create({
       user: req.user.id,
       items: orderItems,
@@ -50,7 +60,6 @@ router.post("/", authMiddleware, async (req, res) => {
     });
 
     // Mark products as sold
-    const productIds = orderItems.map((i) => i.product);
     await Product.updateMany(
       { _id: { $in: productIds } },
       { $set: { status: "sold" } }
@@ -94,6 +103,38 @@ router.post("/", authMiddleware, async (req, res) => {
         console.warn("Stripe verify failed", e && e.message);
       }
     }
+
+    // CREATE TRANSACTIONS for each product sold and update revenue
+    for (const item of orderItems) {
+      try {
+        const product = soldProducts.find(p => p._id.toString() === item.product.toString());
+        if (product && product.seller) {
+          // Create transaction record
+          await Transaction.create({
+            type: "purchase", // from buyer's perspective
+            product: item.product,
+            seller: product.seller,
+            buyer: req.user.id,
+            amount: item.price,
+            paymentMethod: paymentMethod,
+            paymentStatus: paymentMethod === "cod" ? "unpaid" : (order.paymentStatus || "unpaid"),
+            transactionStatus: "completed",
+          });
+          
+          // Update seller's revenue
+          await User.findByIdAndUpdate(product.seller, {
+            $inc: { totalRevenue: item.price },
+          });
+        }
+      } catch (e) {
+        console.error("Failed to create transaction for product", item.product, e);
+      }
+    }
+
+    // Update buyer's total spent
+    await User.findByIdAndUpdate(req.user.id, {
+      $inc: { totalSpent: total },
+    });
 
     // remove cart after order placed
     await Cart.findOneAndDelete({ user: req.user.id }).exec();

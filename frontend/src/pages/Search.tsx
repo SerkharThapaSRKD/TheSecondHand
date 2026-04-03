@@ -18,7 +18,7 @@ import {
 const defaultFilters = {
   search: '',
   gender: 'all',
-  category: 'all',
+  clothType: 'all',
   condition: 'all',
   location: 'all',
   minPrice: "" as (number | ""),
@@ -38,7 +38,7 @@ const Search = () => {
       if (filters.gender !== 'all' && product.gender !== filters.gender) {
         return false;
       }
-      if (filters.category !== 'all' && product.category.toLowerCase() !== filters.category) {
+      if (filters.clothType !== 'all' && product.clothType !== filters.clothType) {
         return false;
       }
       if (filters.condition !== 'all' && product.condition !== filters.condition) {

@@ -4,15 +4,22 @@ const ProductSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, default: "" },
   price: { type: Number, required: true },
-  size: { type: String, default: "" },
-  gender: { type: String, enum: ["men", "women", "unisex"], default: "unisex" },
-  category: { type: String, default: "Misc" },
+  size: { type: String, required: true },
+  gender: { type: String, enum: ["men", "women", "unisex"], required: true },
+  clothType: { 
+    type: String, 
+    enum: ["t-shirt", "shirt", "jacket", "blazer", "sweater", "hoodie", "pants", "jeans", "shorts", "skirt", "dress", "saree", "shoes", "boots", "sandals", "bag", "accessories", "other"],
+    required: true 
+  },
+  color: { type: String, default: "" },
+  material: { type: String, default: "" },
+  brand: { type: String, default: "" },
   condition: {
     type: String,
-    enum: ["new", "like-new", "good", "fair"],
-    default: "good",
+    enum: ["new-with-tags", "like-new", "good", "fair", "worn"],
+    required: true,
   },
-  location: { type: String, default: "" },
+  location: { type: String, required: true },
   images: { type: [String], default: [] },
   seller: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   status: {
