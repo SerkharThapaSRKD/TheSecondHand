@@ -97,6 +97,22 @@ export const HeroSection = () => {
         </motion.div>
 
         {/* floating decorative icons */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <motion.div
+            animate={{ y: [0, -20, 0] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="absolute left-10 top-10 text-primary/10"
+          >
+            <Package className="h-16 w-16" />
+          </motion.div>
+          <motion.div
+            animate={{ y: [0, 20, 0] }}
+            transition={{ duration: 5, repeat: Infinity }}
+            className="absolute right-10 bottom-10 text-primary/10"
+          >
+            <Tag className="h-16 w-16" />
+          </motion.div>
+        </div>
         <motion.div
           aria-hidden
           className="absolute left-10 top-10 text-primary/30"

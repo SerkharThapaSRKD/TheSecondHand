@@ -4,6 +4,7 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { TopUsers } from "@/components/home/TopUsers";
 import { useProducts } from "@/context/ProductContext";
+import { motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
 
 const Index = () => {
@@ -31,17 +32,37 @@ const Index = () => {
   }, [getTopSellers, getTopBuyers]);
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
+    <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-neutral-100 dark:from-neutral-900 dark:to-neutral-950">
       <Navbar />
       <main className="container mx-auto space-y-16 px-4 py-12 md:px-6 lg:px-8 pb-24">
         <HeroSection />
-        <div className="space-y-4">
-            <h2 className="font-display text-3xl font-bold text-center">Community Top Picks</h2>
-            <p className="text-center text-muted-foreground max-w-2xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="space-y-6"
+        >
+          <div className="space-y-2">
+            <motion.h2
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="font-display text-3xl font-bold text-center bg-gradient-to-r from-primary via-purple-500 to-indigo-600 bg-clip-text text-transparent"
+            >
+              Community Top Picks
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-center text-muted-foreground max-w-2xl mx-auto"
+            >
               Discover the most active members and trending items in our sustainable marketplace
-            </p>
-            <TopUsers sellers={sellers} buyers={buyers} />
-        </div>
+            </motion.p>
+          </div>
+          <TopUsers sellers={sellers} buyers={buyers} />
+        </motion.div>
         <ProductGrid products={products.slice(0, 10)} title="Latest Treasures" />
       </main>
       <Footer />

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { MapPin, Trash2, Check, Star, Heart } from "lucide-react";
+import { motion } from "framer-motion";
 import PaymentButtons from "@/components/payment/PaymentButtons";
 
 interface ProductCardProps {
@@ -37,36 +38,58 @@ export const ProductCard = ({
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
   return (
-    <Card
-      className="group cursor-pointer overflow-hidden transition-all hover:-translate-y-2 hover:shadow-2xl h-full flex flex-col border border-gray-200 dark:border-gray-800"
-      onClick={onClick}>
-      <div className="aspect-square overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 relative">
-        <img
-          src={product.images[0]?.startsWith("http") ? product.images[0] : `${API}${product.images[0]}`}
-          alt={product.name}
-          className="h-full w-full object-cover transition-transform group-hover:scale-105"
-        />
-        {onDelete && (
-            <Button
-              variant="destructive"
-              size="icon"
-              className="absolute top-2 right-2 h-8 w-8 rounded-full shadow-md z-10 hover:bg-red-600"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-         )}
-        {product.status === "sold" && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <span className="bg-red-600 text-white px-3 py-1 text-sm font-bold uppercase tracking-wider rounded-md transform -rotate-12">
-              Sold
-            </span>
-          </div>
-        )}
-      </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      viewport={{ once: true }}
+    >
+      <Card
+        className="group cursor-pointer overflow-hidden transition-all hover:-translate-y-2 hover:shadow-2xl h-full flex flex-col border border-gray-200 dark:border-gray-800 hover:border-primary/50"
+        onClick={onClick}>
+        <motion.div
+          className="aspect-square overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 relative"
+          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.3 }}
+        >
+          <motion.img
+            src={product.images[0]?.startsWith("http") ? product.images[0] : `${API}${product.images[0]}`}
+            alt={product.name}
+            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+            whileHover={{ scale: 1.1 }}
+            transition={{ duration: 0.4 }}
+          />
+          {onDelete && (
+              <motion.div
+                initial={{ scale: 0 }}
+                whileInView={{ scale: 1 }}
+              >
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2 h-8 w-8 rounded-full shadow-md z-10 hover:bg-red-600"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete();
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </motion.div>
+           )}
+          {product.status === "sold" && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <motion.span
+                initial={{ scale: 0, rotate: -10 }}
+                animate={{ scale: 1, rotate: -12 }}
+                transition={{ type: "spring", stiffness: 200 }}
+                className="bg-red-600 text-white px-3 py-1 text-sm font-bold uppercase tracking-wider rounded-md"
+              >
+                Sold
+              </motion.span>
+            </div>
+          )}
+        </motion.div>
 
       <CardContent className="p-4 flex-1 flex flex-col justify-between space-y-3">
         <div className="space-y-2">
@@ -133,32 +156,51 @@ const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
               Your Item
             </Button>
           ) : (
-            <Button
-              disabled={product.status === "sold" || isInCartAlready}
-              onClick={(e) => {
-                e.stopPropagation();
-                addToCart(product, 1);
-              }}
-              className={`flex-1 text-sm font-semibold shadow transition-all ${
-                isInCartAlready
-                  ? "bg-green-600 hover:bg-green-700 text-white"
-                  : "bg-primary hover:bg-primary/90 text-white"
-              }`}
-              size="sm">
-              {isInCartAlready ? (
-                <>
-                  <Check className="w-3.5 h-3.5 mr-1" /> In Cart
-                </>
-              ) : (
-                "Add to Cart"
-              )}
-            </Button>
+            <motion.div className="flex-1">
+              <Button
+                disabled={product.status === "sold" || isInCartAlready}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addToCart(product, 1);
+                }}
+                className={`w-full text-sm font-semibold shadow transition-all ${
+                  isInCartAlready
+                    ? "bg-green-600 hover:bg-green-700 text-white"
+                    : "bg-primary hover:bg-primary/90 text-white"
+                }`}
+                size="sm">
+                {isInCartAlready ? (
+                  <>
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="flex items-center gap-1"
+                    >
+                      <Check className="w-3.5 h-3.5" /> In Cart
+                    </motion.div>
+                  </>
+                ) : (
+                  "Add to Cart"
+                )}
+              </Button>
+            </motion.div>
           )}
-          <Button variant="ghost" size="sm" className="w-12 hover:bg-red-50 dark:hover:bg-red-950">
-            <Heart className="w-4 h-4 text-gray-400 group-hover:text-red-500" />
-          </Button>
+          <motion.div
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <Button variant="ghost" size="sm" className="w-12 hover:bg-red-50 dark:hover:bg-red-950">
+              <motion.div
+                whileTap={{ scale: 1.3 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <Heart className="w-4 h-4 text-gray-400 group-hover:text-red-500" />
+              </motion.div>
+            </Button>
+          </motion.div>
         </div>
       </CardContent>
     </Card>
+    </motion.div>
   );
 };
